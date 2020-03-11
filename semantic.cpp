@@ -42,7 +42,6 @@ bool testing = false;
 
 void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symtable ){
 
-
 }
 
 // Function Tree Parser to check different errors
@@ -50,8 +49,6 @@ void treeParse ( TreeNode * par, TreeNode * node, SymbolTable * symtable ) {
 
   
 }
-
-
 
 
 // Function Semantic analysis, Generating ERROR(LINKER)
