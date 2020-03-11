@@ -12,6 +12,9 @@
 #include "treeNode.h"
 #include "scanType.h"
 #include "printtree.h"
+#include "util.h"
+
+
 int errors = 0;
 int warnings = 0;
 void printError( int line, std::string err ) {
@@ -120,190 +123,147 @@ void printAnnotatedTree ( TreeNode * og, int indent_count )
         if ( sibling_count > 0 )
         {
             outstr.append("|Sibling: ");
-            outstr.append(std::to_string(sibling_count));
+            // outstr.append(std::to_string(sibling_count));
             outstr.append("  ");
             std::cout << applyIndents(outstr, indent_count);
             std::cout.flush();
             outstr.clear();
         }
 
-        switch (tree->kind)
-          {
-            case OpK:
-              outstr += "Op: ";
-              outstr += opToStr(tree->token);
-              outstr += (" Type: ");
-              outstr += typeToStr(tree->nodetype);
-              break;
+    if (tree->nodekind==StmtK){
+      switch (tree->kind.stmt) {
+        case IfK:
+          printf("If [line: %d]\n", tree->lineno);
+          break;
+        case ElsifK:
+          printf("Elsif [line: %d]\n", tree->lineno);
+          break;
+        case WhileK:
+          printf("While [line: %d]\n", tree->lineno);   
+          break; 
+        case CompoundK:
+          printf("Compound [line: %d]\n", tree->lineno);
+          break;
+        case LoopForeverK:
+	        printf("Loop Forever [line: %d]\n", tree->lineno);
+          break;
+        case LoopK:
+          printf("Loop [line: %d]\n",tree->lineno);
+          break;
+        case ReturnK:
+          printf("Return [line: %d]\n", tree->lineno);
+          break;
+        case RangeK:
+          printf("Range [line: %d]\n",tree->lineno);
+          break;
+        case BreakK:
+          printf("Break [line: %d]\n", tree->lineno);
+          break;
+        default:
+          printf("Unknown StmtNode kind in Statement\n");
+          break;
+      }
+    }else if (tree->nodekind==ExpK) {
+      switch (tree->kind.exp) {
+        case OpK:
+          printf("Op: "); 
+          printToken(tree->attr.op, "\0");
+          printf(" [line: %d]\n",tree->lineno); 
+          break;
+        case ConstantK:
+          printf("Const: %d",tree->attr.value);
+          printf(" [line: %d]\n",tree->lineno);
+          break;
+        case IdK:
+          printf("Id: %s",tree->attr.name);
+          if (tree->expType != Int) {
+            printf(" [undefined type]");
+          }
+          printf(" [line: %d]\n",tree->lineno);
+          break;
+        case AssignK:
+         printf("Assign: ");
+         printToken(tree->attr.op, "\0");
+         if(tree->expType != Int) {
+	       printf(" [undefined type]");
+         } else {
+           printf("WRONG!!!!");
+         }
+         printf(" [line: %d]\n",tree->lineno);
+	     break;
+        case InitK:
+         printf("Init : ");
+         printToken(tree->attr.op, "\0");
+         printf(" [line: %d]\n",tree->lineno);
+         break;
+        case CallK:
+         printf("Call: ");
+         printToken(tree->attr.op, "\0");
+         printf(" [line: %d]\n",tree->lineno);
+         break;
+        default:
+          printf("Unknown ExpNode kind in Expression\n");
+          break;
+      }
+    } else if (tree->nodekind==DeclK){ 
+      switch (tree->kind.decl) {
+        case VarK:
+          if(tree->isArray){
+            printf("Var %s is array of type ", tree->dataType->tokenstr);
+            printToken(tree->attr.op, "\0");
+          } else{
+            printf("Var %s of type ", tree->attr.string);
+            printToken(tree->attr.op, "\0");
+	  }
+          printf("[line: %d]\n", tree->lineno);
+          break;
+        case FuncK:
+           printf("Func %s return type ",tree->attr.name);
+           switch (tree->expType) {
+	      case Void:
+                printf("void ");
+                break;
+             case Char:
+                printf("char ");
+                break;
+             case Int:
+                printf("int ");
+                break;
+           }
+           printf(" [line: %d]\n",tree->lineno);
+           break;
+         case ParamK:
+          if(tree->isArray) {
+	      printf("Param %s is array of type ", tree->attr.name);
+              printToken(tree->attr.op, "\0");
+	  }else {
+              printf("Param %s of type ",tree->attr.name);
+	      printToken(tree->attr.op, "\0");
+          }
+	  printf("[line: %d]\n", tree->lineno);
+          break;
+        default:
+          printf("Unknown DeclNode kind in Decleration\n");
+          break;
+      }
+    } else {
+      printf("Unknown node kind in the last\n");
+    }
 
-            // case UnaryK:
-            //   outstr.append("Op: ");
-            //   outstr.append(svalResolve(tree));
-            //   outstr += (" Type: ");
-            //   outstr += typeToStr(tree->nodetype);
-            //   break;
-
-            case ConstantK:
-              outstr.append("Const: ");
-              if ( tree->nodetype == Boolean )
-              {
-                  outstr.append(iboolToString(tree->token->ivalue));
-              } else if ( tree->nodetype == Integer )
-              {
-                  outstr.append(std::to_string(tree->token->ivalue));
-              } else if ( tree->nodetype == Character )
-              {
-                  if ( tree->token->svalue != NULL )
-                  {
-                      outstr += '"';
-                      outstr += tree->token->svalue;
-                      outstr += '"';
-                  } else
-                  {
-                      outstr += '\'';
-                      outstr += tree->token->cvalue;
-                      outstr += '\'';
-                  }
-              }
-
-              outstr.append(" Type: ");
-              if ( tree->isArray )
-              {
-                  outstr.append("is array of ");
-              }
-              outstr.append(typeToStr(tree->nodetype));
-              break;
-
-            case IdK:
-              outstr.append("Id: ");
-              outstr.append(svalResolve(tree));
-              outstr += (" Type: ");
-              if ( tree->isArray )
-              {
-                  outstr.append("is array of ");
-              }
-              outstr += typeToStr(tree->nodetype);
-              break;
-
-            case AssignK:
-              outstr.append("Assign: ");
-              outstr += opToStr(tree->token);
-              outstr += (" Type: ");
-              if ( tree->isArray )
-              {
-                  outstr.append("is array of ");
-              }
-              outstr += typeToStr(tree->nodetype);
-              break;
-
-            case IfK:
-              outstr.append("If");
-              break;
-
-            case CompoundK:
-              outstr.append("Compound");
-              outstr += " with size ";
-              outstr += std::to_string(tree->size);
-              outstr += " at end of it's declarations";                     
-              break;
-
-            // case ForeachK:
-            //   outstr.append("Foreach");
-            //   break;
-
-            case WhileK:
-              outstr.append("While");
-              break;
-
-            case ReturnK:
-              outstr.append("Return");
-              break;
-
-            case BreakK:
-              outstr.append("Break");
-              break;
-
-            case VarK:
-              outstr.append("Var ");
-              outstr.append(svalResolve(tree));
-              if ( tree->isArray )
-              {
-                  outstr.append(" is array of");
-              }
-              outstr += " ";
-              outstr.append(typeToStr(tree->nodetype));
-              outstr += " allocated as ";
-            //   if( tree->offsetReg == global )
-            //       outstr += "Global";
-            //   else
-            //       outstr += "Local";
-              if(tree->isStatic)
-                  outstr += "Static";
-              outstr += " of size ";
-              outstr += std::to_string(tree->size);
-              outstr += " and data location ";
-              outstr += std::to_string(tree->location);
-              break;
-
-            case ParamK:
-              outstr.append("Param ");
-              outstr.append(svalResolve(tree));
-              if ( tree->isArray )
-              {
-                  outstr.append(" is array of");
-              }
-              outstr += " ";
-              outstr.append(typeToStr(tree->nodetype));
-              outstr += " allocated as ";
-              outstr += "Parameter";
-              outstr += " of size ";
-              outstr += std::to_string(tree->size);
-              outstr += " and data location ";
-              outstr += std::to_string(tree->location);
-              break;
-
-            case FuncK:
-              outstr.append("Func ");
-              outstr.append(svalResolve(tree));
-              outstr.append(" returns type ");
-              outstr.append(typeToStr(tree->nodetype));
-              outstr += " allocated as ";
-            //   if( tree->offsetReg == global )
-            //       outstr += "Global";
-            //   else
-            //       outstr += "Local";
-              outstr += " of size -";
-              outstr += std::to_string(tree->size);
-              outstr += " and exec location ";
-              outstr += std::to_string(tree->location);              
-              break;
-
-            case CallK:
-              outstr.append("Call: ");
-              outstr.append(svalResolve(tree));
-              outstr += (" Type: ");
-              outstr += typeToStr(tree->nodetype);
-              break;
-
-            default:
-              outstr.append("\nWe shouldn't get here\n");
-              break;
-
-          } // end switch
 
         std::cout << outstr << " [line: " << tree->lineno << "]" << std::endl;
         std::cout.flush();
         outstr.clear();
 
         // Check if there are children
-        if ( tree->numChildren > 0 )
-        {
-            for (int i = 0; i < tree->numChildren; i++)
+       // if ( tree->numChildren > 0 )
+       // {
+            for (int i = 0; i < 3; i++)
             {
                 if ( tree->child[i] != NULL )
                 {
                     outstr.append("!   Child: ");
-                    outstr.append(std::to_string(i));
+                    // outstr.append(std::to_string(i));
                     outstr.append("  ");
                     std::cout << applyIndents(outstr, indent_count);
                     std::cout.flush();
@@ -311,7 +271,7 @@ void printAnnotatedTree ( TreeNode * og, int indent_count )
                     printAnnotatedTree(tree->child[i], indent_count + 1);
                 }
             }
-        }
+       // }
 
         tree = tree->sibling; // Jump to the next sibling
         sibling_count++;
