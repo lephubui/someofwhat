@@ -10,7 +10,7 @@
 
 void printSemanticTree(TreeNode *tree);
 
-void semanticAnalysis(TreeNode * tree);
+void semanticAnalysisTree(TreeNode * mTree);
 
 void checkNode(TreeNode * tree);
 

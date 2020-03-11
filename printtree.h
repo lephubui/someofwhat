@@ -23,6 +23,6 @@ std::string opToStr( TokenData * tok );
 void printError( int line, std::string err );
 void printWarning( int line, std::string warn );
 
-void printAnnotatedTree(TreeNode * tree, int indent_count = 0);
+void printErrorWarningTree(TreeNode * og);
 
 #endif

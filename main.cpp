@@ -27,7 +27,7 @@ int main(int argc, char *argv[]){
   int  numWarnings=0;
 
   // hunt for a string of options
-  while ((c = ourGetopt(argc, argv,(char*)("pd"))) != -1) {
+  while ((c = ourGetopt(argc, argv,(char*)("pdP"))) != -1) {
     switch (c) {  
     case 'd':
       break;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
       flagTree = 1;
       break;
     case 'P':
-      flagTree = 3;
+      flagTree = 2;
       break;
     case '?':
       findIndex = optind;
@@ -44,19 +44,25 @@ int main(int argc, char *argv[]){
       exit(1);
       counter++;
     }
+  
+  TreeNode *errorsWarningTree = syntaxTree;
+  if(argc > 1){
+        if(yyin = fopen(argv[optind], "r")){
+        yyparse();
+        if(flagTree == 1){
+          // Print the normal tree 
+          printTree(syntaxTree);
+          
+          //printErrorWarningTree(syntaxTree);
 
-    if(argc > 1){
-      if(yyin = fopen(argv[optind], "r")){
-	     yyparse();
-	if(flagTree == 1){
-	   printTree(syntaxTree);
-          //checkNode(syntaxTree);
-          //printSemanticTree(syntaxTree);
-	} else if(flagTree == 3){
-          checkNode(syntaxTree);
+        } else if(flagTree == 2){
+          // Print warning and errors tree
+          printf("Option -P\n");
+          semanticAnalysisTree(syntaxTree);
+          printErrorWarningTree(syntaxTree);
         } else{
-          exit(1);                  
-	}      
+            exit(1);                  
+        }      
       }  
     }                      
               

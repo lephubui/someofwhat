@@ -24,94 +24,56 @@ void semanticAnalysis(TreeNode * og) {
     typeCheckDecleration(NULL, tree, mTypeTable);
 
 }    
-std::string svalResolve( TreeNode * tree ) {
+// std::string svalResolve( TreeNode * tree ) {
 
-    std::string temp;
+//     // std::string temp;
    
-    if (tree != NULL) {
-        if (tree->svalue != NULL) {
-            temp.assign(tree->svalue);
-        } else if (tree->token != NULL) {
-            temp = opToStr(tree->token);
-        }
-    }
-    return temp;
-}
+//     // if (tree != NULL) {
+//     //     if (tree->svalue != NULL) {
+//     //         temp.assign(tree->svalue);
+//     //     } else if (tree->token != NULL) {
+//     //         temp = opToStr(tree->token);
+//     //     }
+//     // }
+//     // return temp;
+// }
 
 bool testing = false;
 
 void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symtable ){
 
-   TreeNode * tree, parent;
-   tree = node;
-   if (par == NULL) {
-       parent = tree;
-   } else {
-      parent = par;
-   }
-   while (tree != NULL) {
-     TreeNode * temp;            // Temporary TreeNode
-     int sibling_count = 0;      // Keeps track of siblings
-     int line = tree->lineno;    // Node's line number
-     std::string tree_svalue = svalResolve(tree);
 
-     if(tree->nodekind == DeclK){
-        switch (tree->kind) {
-	  case VarK:
-             if(!symtable->insert(tree_svalues, tree)){
-		printf("Can't insert DeclK:Vark %s \n", tree_svalue);
-	     }
-             break;
-          
-           case ParamK:
-             if ( !symtable->insert(tree_svalue, tree) )
-             {
-                // if(testing)
-                //     std::cout << "Failed to insert DeclK:ParamK:" << tree_svalue << std::endl;
-             }                 
-             break;
-           case FuncK:
-             if ( !symtable->insert(tree_svalue, tree) )
-             {
-                 // if(testing)
-                  //    std::cout << "Failed to insert DeclK:FunK:" << tree_svalue << std::endl;
-             }
-             symtable->enter("Function " + tree_svalue);
-              break;
-           case IdK:
-             if ( testing )
-               {
-               //         std::cout << "Hit DeclK:IdK:" << tree_svalue << std::endl;
-                }
-             temp = (TreeNode *) symtable->lookup(tree_svalue);
-             if ( temp != NULL )
-             {
-                 tree->nodetype = temp->nodetype;
-                 if ( temp->isArray && temp->child[0] == NULL )
-                 {
-                    tree->isArray = true;
-                 }
-                 if(temp->isIndex)
-                 {
-                     tree->isIndex = true;
-                 }
-                 if ( temp->isStatic )
-                 {
-                    tree->isStatic = true;
-                 }
+}
 
-           } else {
-                 tree->nodetype = Undef;
-            }
-            break;
-          }
-          break;
-        }
- 
-     }
-  }
+// Function Tree Parser to check different errors
+void treeParse ( TreeNode * par, TreeNode * node, SymbolTable * symtable ) {
+
+  
+}
 
 
+
+
+// Function Semantic analysis, Generating ERROR(LINKER)
+void semanticAnalysisTree(TreeNode * mTree) {
+    int errors = 0;
+    SymbolTable * mSymbolTable = new SymbolTable();
+    SymbolTable * typetable = new SymbolTable();
+    TreeNode * tree = mTree;
+
+
+    // *** Semantic Analysis *** //
+    //treeParse(NULL, tree, mSymbolTable);
+
+    if ( mSymbolTable->lookup("main") == NULL )
+    {
+        printf("ERROR(LINKER): Procedure main is not defined.\n");
+        errors++;
+    } else {
+      printf("NOTHING\n");
+    }
+
+}
 
 
 
