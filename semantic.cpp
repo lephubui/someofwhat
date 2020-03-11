@@ -18,25 +18,19 @@ void printSemanticTree(TreeNode *tree) {
    printf("Get the table\n");
 }
 
-void semanticAnalysis(TreeNode * og) {
-    TreeNode * tree = og;
-    
-    typeCheckDecleration(NULL, tree, mTypeTable);
-
-}    
 // std::string svalResolve( TreeNode * tree ) {
 
-//     // std::string temp;
+//     std::string temp;
    
-//     // if (tree != NULL) {
-//     //     if (tree->svalue != NULL) {
-//     //         temp.assign(tree->svalue);
-//     //     } else if (tree->token != NULL) {
-//     //         temp = opToStr(tree->token);
-//     //     }
-//     // }
-//     // return temp;
-// }
+// //     // if (tree != NULL) {
+// //     //     if (tree->svalue != NULL) {
+// //     //         temp.assign(tree->svalue);
+// //     //     } else if (tree->token != NULL) {
+// //     //         temp = opToStr(tree->token);
+// //     //     }
+// //     // }
+//     return temp;
+//  }
 
 bool testing = false;
 
@@ -46,6 +40,10 @@ void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symta
 
 // Function Tree Parser to check different errors
 void treeParse ( TreeNode * par, TreeNode * node, SymbolTable * symtable ) {
+
+    TreeNode * tree, parent;
+    tree = node;
+    //(par == NULL) ? parent = tree : parent = par;
 
   
 }
