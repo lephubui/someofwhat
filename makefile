@@ -2,7 +2,7 @@ BIN  = c-
 CC   = g++
 CFLAGS = -DCPLUSPLUS -g     # for use with C++ if file ext is .c
 
-SRCS = $(BIN).y $(BIN).l ourgetopt.c util.c symbolTable.cpp printtree.cpp sematic.cpp
+SRCS = $(BIN).y $(BIN).l ourgetopt.c util.c symbolTable.cpp printtree.cpp semantic.cpp
 HDRS = scanType.h treeNode.h ourgetopt.h util.h symbolTable.h printtree.h semantic.h 
 OBJS = lex.yy.o $(BIN).tab.o ourgetopt.o util.o symbolTable.o printtree.o semantic.o
 LIBS = -lm

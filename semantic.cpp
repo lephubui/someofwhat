@@ -5,10 +5,13 @@
 #include "util.h"
 #include "semantic.h"
 #include "printtree.h"
+#include "scanType.h"
 #define MAXCHILDREN 3
 
 SymbolTable mSymbolTable;
 SymbolTable * mTypeTable;
+
+TreeNode * func = NULL;
 
 void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symtable );
 
@@ -40,20 +43,13 @@ void checkArgTypes( TreeNode * call, TreeNode * func)
         return;
     }
     
-    if(testing)
-    {
-        //std::cout << "Entering checkArgTypes..." << std::endl;
-    }
     TreeNode * temp_call = call->child[0];
     TreeNode * temp_func = func->child[0];
     int sibling_count = 1;
     
     while( temp_call != NULL && temp_func != NULL)
     {
-        if(testing)
-        {
-           // std::cout << "checkArgTypes:sibling:" << sibling_count << std::endl;
-        }
+       
         if ( temp_func->expType != temp_call->expType )
         {
             printf("ERROR(%d): Expecting type %s in parameter %i of call to '%s' defined on line %d but got %s.\n",
@@ -83,7 +79,7 @@ void checkArgTypes( TreeNode * call, TreeNode * func)
 
 
 // Function Tree Parser to check different errors
-void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable ) {
+void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable ) {
 
     TreeNode * tree, parent;
     tree = node;
@@ -129,14 +125,158 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
         } else if (tree->nodekind==ExpK) {
             switch (tree->kind.exp) {
                 case OpK:
-                  
-                  break;
+                if ( tree->dataType != NULL )
+                {
+                    switch (tree->attr.op)
+                      {
+                        case T_NOTEQ:
+                          if ( (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                            != (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                          {
+                              printf("ERROR(%d): '%s' requires that if one operand is an array so must the other operand.\n", line, op.c_str());
+                              errors++;
+                          }                                  
+                          if( !typeCompare(lhs, rhs) )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
+                                      line, op.c_str(), lhs_str, rhs_str);
+                              errors++;
+                          }                                   
+                          break;                                  
+
+                        case T_LESSEQ:
+                        case T_LT:
+                        case T_GRTEQ:
+                        case T_GT:
+                          if ( (!isInteger(lhs) && !isCharacter(lhs))
+                            || (!isInteger(rhs) && !isCharacter(rhs)) )
+                          {
+                              if ( !isInteger(lhs) && !isCharacter(lhs) )
+                              {
+                                  printf("ERROR(%d): '%s' requires operands of type %s but lhs is of type %s.\n",
+                                          line, op.c_str(), "char or int", lhs_str);
+                                  errors++;
+                              }
+                              if ( !isInteger(rhs) && !isCharacter(rhs) )
+                              {
+                                  printf("ERROR(%d): '%s' requires operands of type %s but rhs is of type %s.\n",
+                                          line, op.c_str(), "char or int", rhs_str);
+                                  errors++;
+                              }
+                          }
+                          if ( !typeCompare(lhs, rhs) )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
+                                      line, op.c_str(), lhs_str, rhs_str);
+                              errors++;
+                          }
+                          if ( (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                                || (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                          {
+                              printf("ERROR(%d): The operation '%s' does not work with arrays.\n",
+                                      line, op.c_str());
+                              errors++;
+                          }
+                          break;
+
+                        case T_TIMES:
+                        case T_PLUS:
+                        case T_MINUS:
+                        case T_DIV:
+                        case T_MOD:
+                          if ( !isInteger(lhs) || !isInteger(rhs) )
+                          {
+                              if ( !isInteger(lhs) )
+                              {
+                                  printf("ERROR(%d): '%s' requires operands of type %s but lhs is of type %s.\n",
+                                          line, op.c_str(), typeToStr(Int), lhs_str);
+                                  errors++;
+                              }
+                              if ( !isInteger(rhs) )
+                              {
+                                  printf("ERROR(%d): '%s' requires operands of type %s but rhs is of type %s.\n",
+                                          line, op.c_str(), typeToStr(Int), rhs_str);
+                                  errors++;
+                              }
+                          } else if ( !typeCompare(lhs, rhs) )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
+                                      line, op.c_str(), lhs_str, rhs_str);
+                              errors++;
+                          }
+                          if ( (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                                || (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                          {
+                              printf("ERROR(%d): The operation '%s' does not work with arrays.\n",
+                                      line, op.c_str());
+                              errors++;
+                          }                                  
+                          break;
+                          
+                        case T_AND:
+                        case T_OR:
+                          if ( !isBoolean(lhs) )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of type %s but lhs is of type %s.\n",
+                                      line, op.c_str(), typeToStr(Int), lhs_str);
+                              errors++;
+                          }
+                          if ( !isBoolean(rhs) )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of type %s but rhs is of type %s.\n",
+                                      line, op.c_str(), typeToStr(Int), rhs_str);
+                              errors++;
+                          }
+                          if ( (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                                || (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                          {
+                              printf("ERROR(%d): The operation '%s' does not work with arrays.\n",
+                                      line, op.c_str());
+                              errors++;
+                          }                                      
+                            break;
+                      }
+                    
+                } else {
+                  printf("Tried to access NULL token in ExpK: OpK, or something like that\n");
+                }
+                break;
                 case ConstantK:
                   
-                  break;
+                break;
                 case IdK:
-                 
-                  break;
+                tmp = (TreeNode *) symtable->lookup(tree_svalue);
+                if ( tmp != NULL )
+                {
+                    if ( tree->child[0] != NULL)
+                    {
+                        tree->isArray = false; 
+                        if ( tmp->isArray ) 
+                        {
+                            if ( child0_sval == tree_svalue && tree->child[0]->child[0] == NULL)
+                            {
+                                printf("ERROR(%d): Array index is the unindexed array '%s'.\n", line, tree_svalue.c_str());
+                                errors++;
+                            } else if ( lhs != Int )
+                            {
+                                printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n",
+                                        line, tree_svalue.c_str(), lhs_str);
+                                errors++;
+                            }
+                        } else
+                        {
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n",
+                                    line, tree_svalue.c_str());
+                            errors++;
+                        }
+                    }
+                } else
+                {
+                    printf("ERROR(%d): Symbol '%s' is not defined.\n", line, tree_svalue.c_str());
+                    errors++;
+                    tree->expType = UndefinedType;
+                }
+                break;
                 case AssignK:
                     switch(tree->attr.op) {
                         case T_ASSIGN: 
@@ -153,16 +293,49 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
                                         line, op.c_str());
                                 errors++;
                             }
-                            break;
+                        break;
+                        case T_ADDASS:
+                        case T_SUBASS:
+                        case T_MULASS:
+                        case T_DIVASS:
+                          if ( ( tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                            || ( tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                          {
+                              printf("ERROR(%d): The operation '%s' does not work with arrays.\n",
+                                      line, op.c_str());
+                              errors++;
+                          }                                
+                          if (  lhs != Void && lhs != UndefinedType && lhs != Int )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of type %s but lhs is of type %s.\n",
+                                      line, op.c_str(), typeToStr(Int), lhs_str);
+                              errors++;
+                          }
+                          if ( rhs != Void && rhs != UndefinedType && rhs != Int )
+                          {
+                              printf("ERROR(%d): '%s' requires operands of type %s but rhs is of type %s.\n",
+                                      line, op.c_str(), typeToStr(Int), rhs_str);
+                              errors++;
+                          }
+                          break;
+                          // TODO: lhs != rhs checking?
 
-                    }
+                        case T_INC:
+                        case T_DEC:
+                          if ( lhs != UndefinedType && lhs != UndefinedType )
+                          {
+                              printf("ERROR(%d): Unary '%s' requires operands of type %s but lhs is of type %s.\n",
+                                      line, op.c_str(), typeToStr(Int), lhs_str);
+                              errors++;
+                          }
+                        break;
+                    } // end switch
                 break;
                 case InitK:
                
                 break;
                 case CallK:
-                    if ( tree_svalue != "" )
-                    {
+                  
                         tmp = (TreeNode *) symtable->lookup(tree_svalue);
                         if ( tmp == NULL )
                         {
@@ -196,7 +369,7 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
                             }
     
                         }
-                    }
+                    
                     break;
                 break;
                 default:
@@ -241,12 +414,23 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
                     }
                 break;
               case FuncK:
-                printf("Func %s return type ",tree->attr.name);
-                
+                if ( !symtable->insert(tree_svalue, tree) )
+                {
+                    tmp = (TreeNode *) symtable->lookup(tree_svalue);
+                    printf("ERROR(%d): Symbol '%s' is already defined at line %d.\n", line, tree_svalue.c_str(), tmp->lineno);
+                    errors++;
+                }
+                symtable->enter("Function " + tree_svalue);
+                func = tree;
                 break;
               case ParamK:
-                  
-                    break;
+                  if ( !symtable->insert(tree_svalue, tree) )
+                  {
+                      tmp = (TreeNode *) symtable->lookup(tree_svalue);
+                      printf("ERROR(%d): Symbol '%s' is already defined at line %d.\n", line, tree_svalue.c_str(), tmp->lineno);
+                      errors++;
+                  }
+                break;
               default:
                   printf("Unknown DeclNode kind in Decleration\n");
                   break;
@@ -255,6 +439,13 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
           printf("Node is empty\n");
         }
 
+      for (int i = 0; i < MAXCHILDREN; i++)
+      {
+          if ( tree->child[i] != NULL )
+          {
+              treeTraverse(tree, tree->child[i], symtable );
+          }
+      }
       tree = tree->sibling;
     } // End while loop
   
@@ -270,15 +461,13 @@ void semanticAnalysisTree(TreeNode * mTree) {
 
 
     // Semantic Analysis 
-    treeParseProcess(NULL, tree, mSymbolTable);
+    treeTraverse(NULL, tree, mSymbolTable);
 
-    if ( mSymbolTable->lookup("main") == NULL )
-    {
-        printf("ERROR(LINKER): Procedure main is not defined.\n");
-        errors++;
-    } else {
-      printf("NOTHING\n");
-    }
+    // if ( mSymbolTable->lookup("main") == NULL )
+    // {
+    //     printf("ERROR(LINKER): Procedure main is not defined.\n");
+    //     errors++;
+    // }
 
 }
 
@@ -293,7 +482,6 @@ static void traverse( TreeNode * t,
                void (* preProc) (TreeNode *),
                void (* postProc) (TreeNode *) )
 { if (t != NULL)
-   printf("In the tree\n");
   { preProc(t);
     { int i;
       for (i=0; i < MAXCHILDREN; i++)
@@ -359,7 +547,7 @@ void checkNode(TreeNode * tree)
           printf("Compound [line: %d]\n", tree->lineno);
           break;
         case LoopForeverK:
-	  printf("Loop Forever [line: %d]\n", tree->lineno);
+	        printf("Loop Forever [line: %d]\n", tree->lineno);
           break;
         case LoopK:
           printf("Loop [line: %d]\n",tree->lineno);
@@ -386,6 +574,9 @@ void checkNode(TreeNode * tree)
           break;
         case ConstantK:
           printf("Const: %d",tree->attr.value);
+          if(tree->expType == Int){
+              printf("type int \n");
+          }
           printf(" [line: %d]\n",tree->lineno);
           break;
         case IdK:

@@ -57,7 +57,6 @@ int main(int argc, char *argv[]){
 
         } else if(flagTree == 2){
           // Print warning and errors tree
-          printf("Option -P\n");
           semanticAnalysisTree(syntaxTree);
           printErrorWarningTree(syntaxTree);
         } else{

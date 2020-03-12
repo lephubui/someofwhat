@@ -23,7 +23,6 @@ int warnings = 0;
 void printTokenForErrWarn( TokenType token, const char* tokenString ){ 
   switch (token)
   { 
-   printf("IN TOKEN\n");
     //case IF: printf("IF"); break;
    // case EQUAL: printf("="); break;
    // case RETURN: printf("("); break;
@@ -265,6 +264,9 @@ void printErrorWarningTree ( TreeNode * og)
           break;
         case ConstantK:
           printf("Const: %d",tree->attr.value);
+          if(tree->expType == Int){
+              printf(" [type int]");
+          }
           printf(" [line: %d]\n",tree->lineno);
           break;
         case IdK:

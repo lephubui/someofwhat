@@ -14,4 +14,20 @@ void childExpType(TreeNode *mTree, ExpType mType);
 TreeNode * linkChild( TreeNode * child1, TreeNode * child2 );
 
 char * copyString(char * s, int line);
+
+bool isBoolean( ExpType t );
+
+bool isInteger( ExpType t );
+
+bool isCharacter( ExpType t );
+
+bool isVoid( ExpType t );
+
+bool isUndef( ExpType t );
+
+bool typeCompare( ExpType a, ExpType b );
+
+bool hasType( ExpType t );
+
+
 #endif

@@ -350,3 +350,45 @@ void printTree( TreeNode * tree ){
   }
   UNINDENT;
 }
+
+
+bool isBoolean( ExpType t )
+{
+    return typeCompare( t, Bool );
+}
+
+bool isInteger( ExpType t )
+{
+    return typeCompare( t, Int );    
+}
+
+bool isCharacter( ExpType t )
+{
+    return typeCompare( t, Char );    
+}
+
+bool isVoid( ExpType t )
+{
+    return t == Void ? true : false;
+}
+
+bool isUndef( ExpType t )
+{
+    return t == UndefinedType ? true : false;
+}
+
+bool typeCompare( ExpType a, ExpType b )
+{
+    if( a != UndefinedType && b != UndefinedType  )
+        return a == b;
+    else
+        return true;
+}
+
+bool hasType( ExpType t )
+{
+    if( t != UndefinedType  )
+        return true;
+    else
+        return false;
+}
