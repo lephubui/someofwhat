@@ -21,7 +21,6 @@
 void printToken( TokenType token, const char* tokenString ){ 
   switch (token)
   { 
-   printf("IN TOKEN\n");
     //case IF: printf("IF"); break;
    // case EQUAL: printf("="); break;
    // case RETURN: printf("("); break;
