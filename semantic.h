@@ -14,6 +14,8 @@ void semanticAnalysisTree(TreeNode * mTree);
 
 void checkNode(TreeNode * tree);
 
+void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable );
+
 static void traverse( TreeNode * t,
                void (* preProc) (TreeNode *),
                void (* postProc) (TreeNode *) );

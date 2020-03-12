@@ -293,7 +293,7 @@ void printErrorWarningTree ( TreeNode * og)
           } else{
             printf("Var %s of type ", tree->attr.string);
             printTokenForErrWarn(tree->attr.op, "\0");
-	  }
+	        }
           printf("[line: %d]\n", tree->lineno);
           break;
         case FuncK:

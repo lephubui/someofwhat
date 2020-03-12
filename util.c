@@ -269,12 +269,12 @@ void printTree( TreeNode * tree ){
          printf("Assign: ");
          printToken(tree->attr.op, "\0");
          if(tree->expType != Int) {
-	   printf(" [undefined type]");
+	      printf(" [undefined type]");
          } else {
            printf("WRONG!!!!");
          }
          printf(" [line: %d]\n",tree->lineno);
-	 break;
+	      break;
         case InitK:
          printf("Init : ");
          printToken(tree->attr.op, "\0");

@@ -4,7 +4,7 @@
 #include "treeNode.h"
 #include "util.h"
 #include "semantic.h"
-
+#include "printtree.h"
 #define MAXCHILDREN 3
 
 SymbolTable mSymbolTable;
@@ -18,33 +18,154 @@ void printSemanticTree(TreeNode *tree) {
    printf("Get the table\n");
 }
 
-// std::string svalResolve( TreeNode * tree ) {
-
-//     std::string temp;
-   
-// //     // if (tree != NULL) {
-// //     //     if (tree->svalue != NULL) {
-// //     //         temp.assign(tree->svalue);
-// //     //     } else if (tree->token != NULL) {
-// //     //         temp = opToStr(tree->token);
-// //     //     }
-// //     // }
-//     return temp;
-//  }
 
 bool testing = false;
 
-void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symtable ){
+void typeCheckDecleration ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable ){
+    
+
 
 }
 
 // Function Tree Parser to check different errors
-void treeParse ( TreeNode * par, TreeNode * node, SymbolTable * symtable ) {
+void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable ) {
 
     TreeNode * tree, parent;
     tree = node;
-    //(par == NULL) ? parent = tree : parent = par;
+    int errors = 0;
+    int warnings = 0;
+    // (par == NULL) ? parent = tree : parent = par;
 
+    while(tree != NULL) {
+        TreeNode * tmp;             // Temporary TreeNode
+        int sibling_count = 0;      // Keeps track of siblings
+        int line = tree->lineno;    // Node's line number
+
+        ExpType lhs = UndefinedType;
+        ExpType rhs = UndefinedType;
+
+        std::string child0_sval;
+        std::string child1_sval;
+        std::string tree_svalue = svalResolve(tree);
+        std::string op = opToStr(tree->dataType);
+
+
+        if ( tree->child[0] != NULL )
+        {
+            lhs = tree->child[0]->expType;
+            child0_sval = svalResolve(tree->child[0]);
+        }
+        if ( tree->child[1] != NULL )
+        {
+            rhs = tree->child[1]->expType;
+            child1_sval = svalResolve(tree->child[1]);
+        }
+
+        const char * lhs_str;
+        const char * rhs_str;
+        const char * tree_type_str;
+        tree_type_str = typeToStr(tree->expType); // Convert token to string
+        lhs_str = typeToStr(lhs); // Convert to String
+        rhs_str = typeToStr(rhs); // Convert to String
+
+
+        if (tree->nodekind==StmtK) {
+
+        } else if (tree->nodekind==ExpK) {
+            switch (tree->kind.exp) {
+                case OpK:
+                  
+                  break;
+                case ConstantK:
+                  
+                  break;
+                case IdK:
+                 
+                  break;
+                case AssignK:
+                    switch(tree->attr.op) {
+                        case T_ASSIGN: 
+                            if ( lhs != UndefinedType && rhs != UndefinedType && lhs != rhs )
+                            {
+                                printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
+                                        line, op.c_str(), lhs_str, rhs_str);
+                                errors++;
+                            }
+                            if ( lhs != UndefinedType && rhs != UndefinedType && (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
+                                  != (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
+                            {
+                                printf("ERROR(%d): '%s' requires that if one operand is an array so must the other operand.\n",
+                                        line, op.c_str());
+                                errors++;
+                            }
+                            break;
+
+                    }
+                break;
+                case InitK:
+               
+                break;
+                case CallK:
+               
+                break;
+                default:
+                  printf("Unknown ExpNode kind in Expression\n");
+                  break;
+            }
+        } else if (tree->nodekind==DeclK){
+            switch (tree->kind.decl) {
+              case VarK:
+                if (!symtable->insert(tree_svalue, tree)) {
+                        tmp = (TreeNode *) symtable->lookup(tree_svalue);
+                        printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", line, tree_svalue.c_str(), tmp->lineno);
+                        errors++;
+                }
+                else if ( tree->child[0] != NULL )
+                    {
+                        if ( tree->isArray )
+                        {
+                            if ( tree->expType != Char )
+                            {
+                                printf("ERROR(%d): Array '%s' must be of type char to be initialized, but is of type %s.\n",
+                                       line, tree_svalue.c_str(), tree_type_str);
+                                errors++;
+                            }
+                            else if ( lhs != Char )
+                            {
+                                printf("ERROR(%d): Initializer for array variable '%s' must be a string, but is of nonarray type %s.\n",
+                                       line, tree_svalue.c_str(), lhs_str);
+                                errors++;
+                            }
+                        } else if ( tree->child[0]->isArray && tree->child[0]->child[0] == NULL )
+                        {
+                            printf("ERROR(%d): Initializer for nonarray variable '%s' of type %s cannot be initialized with an array.\n",
+                                   line, tree_svalue.c_str(), tree_type_str);
+                            errors++;
+                        } else if ( lhs != tree->expType )
+                        {
+                            printf("ERROR(%d): Variable '%s' is of type %s but is being initialized with an expression of type %s.\n",
+                                   line, tree_svalue.c_str(), tree_type_str, lhs_str);
+                            errors++;
+                        }
+                    }
+                break;
+              case FuncK:
+                printf("Func %s return type ",tree->attr.name);
+                
+                break;
+              case ParamK:
+                  
+                    break;
+              default:
+                  printf("Unknown DeclNode kind in Decleration\n");
+                  break;
+            }
+        } else {
+          printf("Node is empty\n");
+        }
+
+      tree = tree->sibling;
+    } // End while loop
   
 }
 
@@ -57,8 +178,8 @@ void semanticAnalysisTree(TreeNode * mTree) {
     TreeNode * tree = mTree;
 
 
-    // *** Semantic Analysis *** //
-    //treeParse(NULL, tree, mSymbolTable);
+    // Semantic Analysis 
+    treeParseProcess(NULL, tree, mSymbolTable);
 
     if ( mSymbolTable->lookup("main") == NULL )
     {
@@ -144,7 +265,7 @@ void checkNode(TreeNode * tree)
           printf("While [line: %d]\n", tree->lineno);   
           break; 
         case CompoundK:
-          printf("Compoundiddddddddddddddddd [line: %d]\n", tree->lineno);
+          printf("Compound [line: %d]\n", tree->lineno);
           break;
         case LoopForeverK:
 	  printf("Loop Forever [line: %d]\n", tree->lineno);
@@ -178,7 +299,6 @@ void checkNode(TreeNode * tree)
           break;
         case IdK:
           printf("Id: %s",tree->attr.name);
-          printf("YOU ARE HEREEEEE\n");
           if(tree->expType != Int){
               printf("Undefined Type \n");
           } else {
@@ -187,7 +307,7 @@ void checkNode(TreeNode * tree)
           printf(" [line: %d]\n",tree->lineno);
           break;
         case AssignK:
-         printf("Assignissssssss: ");
+         printf("Assign: ");
          printToken(tree->attr.op, "\0");
          printf(" [line: %d]\n",tree->lineno);
 	 break;
