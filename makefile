@@ -24,5 +24,5 @@ clean:
 	rm -f $(OBJS) $(BIN) lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output *~
 
 tar: 	
-	tar -cvf $(BIN).tar $(SRCS) $(HDRS) makefile 
+	tar -cvf $(BIN).tar $(SRCS) $(HDRS) makefile main.cpp 
 	ls -l $(BIN).tar
