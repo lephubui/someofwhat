@@ -13,6 +13,9 @@ SymbolTable * mTypeTable;
 
 TreeNode * func = NULL;
 
+int errors = 0;
+int warnings = 0;
+
 void typeCheckDecleration ( TreeNode * par, TreeNode * node, SymbolTable * symtable );
 
 void printSemanticTree(TreeNode *tree) {
@@ -33,7 +36,6 @@ void typeCheckDecleration ( TreeNode * parentNode, TreeNode * node, SymbolTable 
 
 void checkArgTypes( TreeNode * call, TreeNode * func)
 {
-  int errors = 0;
     if(call == NULL || func == NULL )
     {
         if(testing)
@@ -83,8 +85,6 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
 
     TreeNode * tree, parent;
     tree = node;
-    int errors = 0;
-    int warnings = 0;
     // (par == NULL) ? parent = tree : parent = par;
 
     while(tree != NULL) {
@@ -138,6 +138,7 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                           }                                  
                           if( !typeCompare(lhs, rhs) )
                           {
+                              printf("11111\n");
                               printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
                                       line, op.c_str(), lhs_str, rhs_str);
                               errors++;
@@ -166,6 +167,7 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                           }
                           if ( !typeCompare(lhs, rhs) )
                           {
+                              printf("22222\n");                           
                               printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
                                       line, op.c_str(), lhs_str, rhs_str);
                               errors++;
@@ -200,6 +202,8 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                               }
                           } else if ( !typeCompare(lhs, rhs) )
                           {
+                              printf("3333333\n");
+
                               printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
                                       line, op.c_str(), lhs_str, rhs_str);
                               errors++;
@@ -246,7 +250,7 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                 break;
                 case IdK:
                 tmp = (TreeNode *) symtable->lookup(tree_svalue);
-                if ( tmp != NULL )
+                if ( tmp == NULL )
                 {
                     if ( tree->child[0] != NULL)
                     {
@@ -272,7 +276,7 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                     }
                 } else
                 {
-                    printf("ERROR(%d): Symbol '%s' is not defined.\n", line, tree_svalue.c_str());
+                    printf("ERROR(%d): Symbol '%s' is not declared.\n", line, tree->attr.name);
                     errors++;
                     tree->expType = UndefinedType;
                 }
@@ -280,12 +284,12 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                 case AssignK:
                     switch(tree->attr.op) {
                         case T_ASSIGN: 
-                            if ( lhs != UndefinedType && rhs != UndefinedType && lhs != rhs )
-                            {
-                                printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
-                                        line, op.c_str(), lhs_str, rhs_str);
-                                errors++;
-                            }
+                            // if ( lhs != UndefinedType && rhs != UndefinedType || lhs != rhs )
+                            // {
+                            //     printf("ERROR(%d): '%s' requires operands of the same type but lhs is type %s and rhs is %s.\n",
+                            //             line, op.c_str(), lhs_str, rhs_str);
+                            //     errors++;
+                            // }
                             if ( lhs != UndefinedType && rhs != UndefinedType && (tree->child[0]->isArray && tree->child[0]->child[0] == NULL)
                                   != (tree->child[1]->isArray && tree->child[1]->child[0] == NULL) )
                             {
@@ -339,7 +343,8 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
                         tmp = (TreeNode *) symtable->lookup(tree_svalue);
                         if ( tmp == NULL )
                         {
-                            printf("ERROR(%d): Symbol '%s' is not defined.\n", line, tree_svalue.c_str());
+                            printf("CALLK \n");
+                            printf("ERROR(%d): Symbol '%s' is not declared.\n", line, tree_svalue.c_str());
                             errors++;
                             tree->expType = UndefinedType;
                         } else
@@ -454,7 +459,6 @@ void treeTraverse ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtab
 
 // Function Semantic analysis, Generating ERROR(LINKER)
 void semanticAnalysisTree(TreeNode * mTree) {
-    int errors = 0;
     SymbolTable * mSymbolTable = new SymbolTable();
     SymbolTable * typetable = new SymbolTable();
     TreeNode * tree = mTree;
@@ -465,7 +469,7 @@ void semanticAnalysisTree(TreeNode * mTree) {
 
     // if ( mSymbolTable->lookup("main") == NULL )
     // {
-    //     printf("ERROR(LINKER): Procedure main is not defined.\n");
+    //     printf("ERROR(LINKER): Procedure main is not declared.\n");
     //     errors++;
     // }
 
@@ -667,4 +671,10 @@ void checkNode(TreeNode * tree)
   }
   UNINDENT; 
  
+}
+
+// Print out the errors and warning
+void printErrorsWarnings(){
+  printf("Number of warnings: %d\n", warnings);
+  printf("Number of errors: %d\n", errors);
 }

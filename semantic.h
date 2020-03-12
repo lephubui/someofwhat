@@ -16,6 +16,8 @@ void checkNode(TreeNode * tree);
 
 void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable );
 
+void printErrorsWarnings();
+
 static void traverse( TreeNode * t,
                void (* preProc) (TreeNode *),
                void (* postProc) (TreeNode *) );

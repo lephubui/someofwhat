@@ -68,7 +68,8 @@ int main(int argc, char *argv[]){
   }
 
   // report the number of errors and warnings
-  printf("Number of warnings: %d\n", numWarnings);
-  printf("Number of errors: %d\n", numErrors);
+  // printf("Number of warnings: %d\n", numWarnings);
+  // printf("Number of errors: %d\n", numErrors);
+  printErrorsWarnings();
   return 0;
 }

@@ -11,7 +11,7 @@ $(BIN): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBS) main.cpp -o $(BIN)
 
 $(BIN).tab.h $(BIN).tab.c: $(BIN).y
-	bison -v -t -d --debug --verbose $(BIN).y  
+	bison -v -t -d $(BIN).y  
 
 lex.yy.c: $(BIN).l $(BIN).tab.h
 	flex $(BIN).l

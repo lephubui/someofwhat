@@ -17,9 +17,6 @@
 #include "c-.tab.h"
 
 
-int errors = 0;
-int warnings = 0;
-
 void printTokenForErrWarn( TokenType token, const char* tokenString ){ 
   switch (token)
   { 
@@ -99,14 +96,12 @@ void printError( int line, std::string err ) {
     std::cout << "ERROR(" << line << "): " << err << "." << std::endl;
     std::cout.flush();
     err.clear();
-    errors++;
 }
 
 void printWarning( int line, std::string warn ) {
     std::cout << "WARNING(" << line << "): " << warn << "." << std::endl;
     std::cout.flush();
     warn.clear();
-    warnings++;
 }
 
 // Returns the text string version of Type t
