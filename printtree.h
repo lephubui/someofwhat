@@ -19,7 +19,7 @@ const char * typeToStr( ExpType t );	        // Returns literal string of type, 
 const char * nodekindToStr( NodeKind nk );
 std::string svalResolve( TreeNode * tree ); // Resolves the svalue of node or token as a C++ string
 std::string opToStr( TokenData * tok );
-
+int countSiblings( TreeNode * start );
 void printError( int line, std::string err );
 void printWarning( int line, std::string warn );
 

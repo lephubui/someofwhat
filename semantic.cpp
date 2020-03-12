@@ -27,6 +27,61 @@ void typeCheckDecleration ( TreeNode * parentNode, TreeNode * node, SymbolTable 
 
 }
 
+
+void checkArgTypes( TreeNode * call, TreeNode * func)
+{
+  int errors = 0;
+    if(call == NULL || func == NULL )
+    {
+        if(testing)
+        {
+            //std::cout << "NULL passed to checkArgTypes" << std::endl;
+        }
+        return;
+    }
+    
+    if(testing)
+    {
+        //std::cout << "Entering checkArgTypes..." << std::endl;
+    }
+    TreeNode * temp_call = call->child[0];
+    TreeNode * temp_func = func->child[0];
+    int sibling_count = 1;
+    
+    while( temp_call != NULL && temp_func != NULL)
+    {
+        if(testing)
+        {
+           // std::cout << "checkArgTypes:sibling:" << sibling_count << std::endl;
+        }
+        if ( temp_func->expType != temp_call->expType )
+        {
+            printf("ERROR(%d): Expecting type %s in parameter %i of call to '%s' defined on line %d but got %s.\n",
+                   call->lineno, typeToStr(temp_func->expType), sibling_count, svalResolve(func).c_str(), func->lineno, typeToStr(temp_call->expType));
+            errors++;
+        }
+        if ( temp_func->isArray && (!temp_call->isArray || (temp_call->isArray && temp_call->child[0] != NULL)) )
+        {
+            printf("ERROR(%d): Expecting array in parameter %i of call to '%s' defined on line %d.\n",
+                   call->lineno, sibling_count, svalResolve(func).c_str(), func->lineno);
+            errors++;
+        }
+        if ( !temp_func->isArray && (temp_call->isArray && temp_call->child[0] == NULL) )
+        {
+            printf("ERROR(%d): Not expecting array in parameter %i of call to '%s' defined on line %d.\n",
+                   call->lineno, sibling_count, svalResolve(func).c_str(), func->lineno);
+            errors++;
+        }
+        
+        sibling_count++;
+        temp_call = temp_call->sibling;
+        temp_func = temp_func->sibling;
+    }
+    
+    
+}
+
+
 // Function Tree Parser to check different errors
 void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * symtable ) {
 
@@ -106,7 +161,43 @@ void treeParseProcess ( TreeNode * parentNode, TreeNode * node, SymbolTable * sy
                
                 break;
                 case CallK:
-               
+                    if ( tree_svalue != "" )
+                    {
+                        tmp = (TreeNode *) symtable->lookup(tree_svalue);
+                        if ( tmp == NULL )
+                        {
+                            printf("ERROR(%d): Symbol '%s' is not defined.\n", line, tree_svalue.c_str());
+                            errors++;
+                            tree->expType = UndefinedType;
+                        } else
+                        {
+                            if ( tmp->kind.decl != FuncK )
+                            {
+                                printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n",
+                                       line, svalResolve(tmp).c_str());
+                                errors++;
+                            } else
+                            {
+                                int treesibs = countSiblings(tree->child[0]);
+                                int tempsibs = countSiblings(tmp->child[0]);
+
+                                if ( treesibs < tempsibs )
+                                {
+                                    printf("ERROR(%d): Too few parameters passed for function '%s' defined on line %d.\n",
+                                           line, svalResolve(tmp).c_str(), tmp->lineno);
+                                    errors++;
+                                } else if ( treesibs > tempsibs )
+                                {
+                                    printf("ERROR(%d): Too many parameters passed for function '%s' defined on line %d.\n",
+                                           line, svalResolve(tmp).c_str(), tmp->lineno);
+                                    errors++;
+                                }
+                                checkArgTypes(tree, tmp);
+                            }
+    
+                        }
+                    }
+                    break;
                 break;
                 default:
                   printf("Unknown ExpNode kind in Expression\n");

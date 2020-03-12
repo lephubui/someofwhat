@@ -82,6 +82,20 @@ void printTokenForErrWarn( TokenType token, const char* tokenString ){
 }
 
 
+// Returns number of siblings the node has
+int countSiblings( TreeNode * start ) {
+    int sib_count = 0;
+    
+    if( start != NULL) {
+        TreeNode * temp = start->sibling;
+        while(temp != NULL) {
+            sib_count++;
+            temp = temp->sibling;
+        }
+    }
+    return sib_count;
+}
+
 void printError( int line, std::string err ) {
     std::cout << "ERROR(" << line << "): " << err << "." << std::endl;
     std::cout.flush();
